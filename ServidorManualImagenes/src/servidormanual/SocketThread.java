@@ -8,11 +8,15 @@ package servidormanual;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -21,6 +25,8 @@ import java.net.Socket;
 public class SocketThread extends Thread {
 
     private Socket clienteSocket;
+    final static String CRLF = "\r\n";
+    private final String carpetaMadre = "C:/JAVIER/cositasjijiij/raiz/";
     
     private final String error404 = "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
             + "<head>\n"
@@ -50,7 +56,7 @@ public class SocketThread extends Thread {
             + "</div>\n"
             + "</body>\n"
             + "</html>";
-    
+
     private final String error501 = "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
             + "<head>\n"
             + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\n"
@@ -79,7 +85,7 @@ public class SocketThread extends Thread {
             + "</div>\n"
             + "</body>\n"
             + "</html>";
-    
+
     private final String errorForbiden = "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
             + "<head>\n"
             + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\n"
@@ -119,13 +125,12 @@ public class SocketThread extends Thread {
     public void run() {
 
         DataOutputStream out = null;
-        //PrintWriter out = null;
+        PrintWriter pw = null;
         BufferedReader in = null;
         try {
-            
-            
+
             out = new DataOutputStream(clienteSocket.getOutputStream());
-            //out = new PrintWriter(clienteSocket.getOutputStream(), true);
+            pw = new PrintWriter(clienteSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clienteSocket.getInputStream()));
 
             String primera = in.readLine();
@@ -133,69 +138,72 @@ public class SocketThread extends Thread {
             String method = arr[0];
             String urlRelativo = arr[1];
 
-            if (!urlRelativo.equalsIgnoreCase("/favicon.ico")) {
+            System.out.println("------------------ Informacion Del Explorador -------------------");
+            String inputLine;
 
-                System.out.println("------------------ Informacion Del Explorador -------------------");
-                String inputLine;
-
-                System.out.println(primera);
-                while ((inputLine = in.readLine()) != null) {
-                    if (inputLine.length() == 0) {
-                        break;
-                    }
-                    System.out.println(inputLine);
+            System.out.println(primera);
+            while ((inputLine = in.readLine()) != null) {
+                if (inputLine.length() == 0) {
+                    break;
                 }
+                System.out.println(inputLine);
+            }
 
-                if (urlRelativo.equalsIgnoreCase("/")) {
-                    urlRelativo = "/index.html";
-                }
+            if (urlRelativo.equalsIgnoreCase("/")) {
+                urlRelativo = "/index.html";
+            }
 
-                File f = new File("C:/Users/CSI-PRO-PC/Desktop/cositas jijiji/raiz" + urlRelativo);
-                //File f = new File("C:/JAVIER/cositasjijiij/raiz/" + urlRelativo);
+            //File f = new File("C:/Users/CSI-PRO-PC/Desktop/cositas jijiji/raiz" + urlRelativo);
+            File f = new File(carpetaMadre + urlRelativo);
+            FileInputStream fis = null;
+            
+            if (!f.isDirectory() && f.exists()) {
+                fis = new FileInputStream(f);
+            }
+            
+            String statusLine = null;
+            String contentTypeLine = null;
+            
 
-                
-                
-                
-                if (method.equalsIgnoreCase("post")) {
-                    out.writeBytes(error501);
-                } else if (f.isDirectory() && !urlRelativo.endsWith("/")){
-                    out.writeBytes(errorForbiden);
-                } else if (urlRelativo.endsWith("/")){
+            if (method.equalsIgnoreCase("post")) {
+
+                pw.write(error501);
+
+            } else if (f.isDirectory() && !urlRelativo.endsWith("/")) {
+
+                pw.write(errorForbiden);
+
+            } else if (urlRelativo.endsWith("/")) {
+
+                //f = new File("C:/Users/CSI-PRO-PC/Desktop/cositas jijiji/raiz" + urlRelativo + "index.html");
+                f = new File(carpetaMadre + urlRelativo + "index.html");
+                if (f.exists()) {
                     
-                    f = new File("C:/Users/CSI-PRO-PC/Desktop/cositas jijiji/raiz" + urlRelativo + "index.html");
-                    if (f.exists()) {
-                        System.out.println("Direccion de archivo :" + f.toString());
-                        try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
-                            String line = null;
-                            System.out.println("------------------ Pagina Enviada --------------------");
-                            while ((line = reader.readLine()) != null) {
-                                out.writeBytes(line);
-                                System.out.println(line);
-                            }
-                        } catch (IOException x) {
-                            System.err.format("IOException: %s%n", x);
-                        }
-                    } else {
-                        out.writeBytes(error404);
-                    }
-                    
-                } else if (f.exists()) {
                     System.out.println("Direccion de archivo :" + f.toString());
-                    try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
-                        String line = null;
-                        System.out.println("------------------ Pagina Enviada --------------------");
-                        while ((line = reader.readLine()) != null) {
-                            out.writeBytes(line);
-                            System.out.println(line);
-                        }
-                    } catch (IOException x) {
-                        System.err.format("IOException: %s%n", x);
-                    }
-                   
+                    statusLine = "HTTP/1.0 200 OK" + CRLF; //common success message
+                    contentTypeLine = "Content-type: " + contentType(urlRelativo) + CRLF;
+                    out.writeBytes(statusLine);
+                    out.writeBytes(contentTypeLine);
+                    out.writeBytes(CRLF);
+                    fileToBytes(fis, out);
+                    fis.close();
+                    
                 } else {
-                     out.writeBytes(error404);
+                    pw.write(error404);
                 }
 
+            } else if (f.exists()) {
+
+                statusLine = "HTTP/1.0 200 OK" + CRLF; //common success message
+                contentTypeLine = "Content-type: " + contentType(urlRelativo) + CRLF;
+                out.writeBytes(statusLine);
+                out.writeBytes(contentTypeLine);
+                out.writeBytes(CRLF);
+                fileToBytes(fis, out);
+                fis.close();
+
+            } else {
+                pw.write(error404);
             }
 
             out.close();
@@ -204,6 +212,34 @@ public class SocketThread extends Thread {
 
         } catch (IOException ex) {
             ex.printStackTrace();
+        } catch (Exception ex) {
+            Logger.getLogger(SocketThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static String contentType(String fileName) {
+        if (fileName.endsWith(".htm") || fileName.endsWith(".html")) {
+            return "text/html";
+        }
+        if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+            return "image/jpeg";
+        }
+        if (fileName.endsWith(".gif")) {
+            return "image/gif";
+        }
+        return "application/octet-stream";
+    }
+
+//set up input output streams
+    private static void fileToBytes(FileInputStream fis, OutputStream os) throws Exception {
+        // Construct a 1K buffer to hold bytes on their way to the socket.
+        byte[] buffer = new byte[1024];
+        int bytes = 0;
+
+        // Copy requested file into the socket's output stream.
+        while ((bytes = fis.read(buffer)) != -1)// read() returns minus one, indicating that the end of the file
+        {
+            os.write(buffer, 0, bytes);
         }
     }
 
