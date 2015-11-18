@@ -10,18 +10,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 
 public class Echo01 extends DefaultHandler {
-    
-    private boolean isPlayer = true;
-    
-    
-    
-    
-    
-    public static void main(String args[]) {
-        /*if (argv.length != 1) {
-            System.err.println("Usage: cmd filename");
-            System.exit(1);
-        }*/
+
+
+    public static void main(String argv[]) {
+      
+
 
         // Use an instance of ourselves as the SAX event handler
         DefaultHandler handler = new Echo01();
@@ -33,7 +26,9 @@ public class Echo01 extends DefaultHandler {
 
             // Parse the input
             SAXParser saxParser = factory.newSAXParser();
-            saxParser.parse(new File("C:\\Users\\Alumno\\Documents\\NetBeansProjects\\SAXDemo01\\doc.xml"), handler);
+
+            saxParser.parse(new File("MLB.xml"), handler);
+
 
         } catch (Throwable t) {
             t.printStackTrace();
@@ -45,14 +40,19 @@ public class Echo01 extends DefaultHandler {
 
     //===========================================================
     // SAX DocumentHandler methods
+
+    // Se Ejecuta al iniciar a leer el documento.    
     //===========================================================
-    public void startDocument() throws SAXException {
+    public void startDocument()
+            throws SAXException {
+
         emit("<?xml version='1.0' encoding='UTF-8'?>");
         nl();
     }
 
-    
-    public void endDocument() throws SAXException {
+    public void endDocument()
+            throws SAXException {
+
         try {
             nl();
             out.flush();
@@ -61,46 +61,85 @@ public class Echo01 extends DefaultHandler {
         }
     }
 
-    public void startElement(String namespaceURI, String lName, String qName, Attributes attrs) throws SAXException {
-        
+    
+    private boolean isPlayer = false;
+    private boolean isTeamName = false;
+    private boolean isTeam = false;
+    
+    
+    
+    
+    //metodo que se manda a invocar cuando el se detecta una etiquta de inico de xml, ejemplo: <item>
+    public void startElement(String namespaceURI,
+            String lName, // local name
+            String qName, // qualified name
+            Attributes attrs)
+            throws SAXException {
+
         String eName = lName; // element name
         if ("".equals(eName)) {
             eName = qName; // namespaceAware = false
         }
         
-        if (eName.equalsIgnoreCase("player")) {
-            
-        }
-        
-        
-        
-        /*emit("<" + eName);
-        if (attrs != null) {
-            for (int i = 0; i < attrs.getLength(); i++) {
-                String aName = attrs.getLocalName(i); // Attr name 
-                if ("".equals(aName)) {
-                    aName = attrs.getQName(i);
-                }
-                emit(" ");
-                emit(aName + "=\"" + attrs.getValue(i) + "\"");
-            }
-        }
-        emit(">");*/
-    }
 
+        if (eName.equalsIgnoreCase("TEAM")) {
+            isTeam= true;
+        }
+        
+        if (eName.equalsIgnoreCase("TEAM_NAME")) {
+            isTeamName = true;
+        }
+        
+        
+        if (eName.equalsIgnoreCase("player")) {
+            isPlayer = true;
+        }
+    }
+    
+    //metodo que se manda a invocar cuando el se detecta una etiquta de inico de xml, ejemplo: <item/>
     public void endElement(String namespaceURI,
             String sName, // simple name
             String qName // qualified name
-    )throws SAXException {
+    )
+            throws SAXException {
         
-        emit("<" + qName + "/>");
+        if (qName.equalsIgnoreCase("TEAM")) {
+            isTeam= false;
+        }
         
+        if (qName.equalsIgnoreCase("TEAM_NAME")) {
+            isTeamName = false;
+        }
+        
+        
+        if (qName.equalsIgnoreCase("PLAYER")) {
+            isPlayer = false;
+            nl();
+        }
+        
+       
     }
-
+    
+    //metodo que se manda a invocar al detectar el contenido dentro de una etiquet xml.
     public void characters(char buf[], int offset, int len)
             throws SAXException {
         String s = new String(buf, offset, len);
-        emit(s);
+        
+        
+        
+        if (isTeam && isTeamName) {
+             emit(s);
+             nl();
+        }
+        
+        if (isTeam && isPlayer) {
+            emit(s + "\t");
+        } else  {
+            nl();
+        }
+        
+        
+
     }
 
     //===========================================================
@@ -108,7 +147,10 @@ public class Echo01 extends DefaultHandler {
     //===========================================================
     // Wrap I/O exceptions in SAX exceptions, to
     // suit handler signature requirements
-    private void emit(String s) throws SAXException {
+
+    private void emit(String s)
+            throws SAXException {
+
         try {
             out.write(s);
             out.flush();
@@ -118,7 +160,10 @@ public class Echo01 extends DefaultHandler {
     }
 
     // Start a new line
-    private void nl() throws SAXException {
+
+    private void nl()
+            throws SAXException {
+
         String lineEnd = System.getProperty("line.separator");
         try {
             out.write(lineEnd);
