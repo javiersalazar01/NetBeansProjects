@@ -1,6 +1,7 @@
 package xmldemo;
 
 import java.io.*;
+import java.util.ArrayList;
 
 import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
@@ -65,8 +66,11 @@ public class Echo01 extends DefaultHandler {
     private boolean isPlayer = false;
     private boolean isTeamName = false;
     private boolean isTeam = false;
-    
-    
+    private boolean isMyTeam = false;
+    private String teamToSearch = "Braves";
+    private String estadistica = "runs";
+    private boolean factorFlag = false;
+    private ArrayList<Integer> runList = new ArrayList<Integer>();
     
     
     //metodo que se manda a invocar cuando el se detecta una etiquta de inico de xml, ejemplo: <item>
@@ -94,7 +98,13 @@ public class Echo01 extends DefaultHandler {
         if (eName.equalsIgnoreCase("player")) {
             isPlayer = true;
         }
+        
+        if (eName.equalsIgnoreCase(estadistica)) {
+            factorFlag = true;
+        }
     }
+    
+    
     
     //metodo que se manda a invocar cuando el se detecta una etiquta de inico de xml, ejemplo: <item/>
     public void endElement(String namespaceURI,
@@ -105,6 +115,27 @@ public class Echo01 extends DefaultHandler {
         
         if (qName.equalsIgnoreCase("TEAM")) {
             isTeam= false;
+            isMyTeam = false;
+            
+            Object [] arrRuns  = runList.toArray();
+            
+            int sum =0,dif = 0,numAct = 0;
+            double prom = 0,dE;
+            
+            for (int i = 0; i < arrRuns.length; i++) {
+                numAct = (int) arrRuns[i];
+                sum = sum +  numAct;
+            }
+            
+            prom = sum / arrRuns.length;
+            
+            for (int i = 0; i < 10; i++) {
+                
+                
+            }
+            
+            
+            
         }
         
         if (qName.equalsIgnoreCase("TEAM_NAME")) {
@@ -117,26 +148,33 @@ public class Echo01 extends DefaultHandler {
             nl();
         }
         
+        if (qName.equalsIgnoreCase("RUNS")) {
+            factorFlag = false;
+        }
+        
+        
        
     }
-    
+
     //metodo que se manda a invocar al detectar el contenido dentro de una etiquet xml.
     public void characters(char buf[], int offset, int len)
             throws SAXException {
         String s = new String(buf, offset, len);
         
         
-        
-        if (isTeam && isTeamName) {
-             emit(s);
-             nl();
-        }
-        
-        if (isTeam && isPlayer) {
-            emit(s + "\t");
-        } else  {
+        if (isTeamName && s.equalsIgnoreCase(teamToSearch)) {
+            isMyTeam = true;
+            
+            emit(s);
             nl();
         }
+        
+        if (isMyTeam && isPlayer ) {
+            emit(s + "\t");
+            if (factorFlag) {
+                runList.add(Integer.parseInt(s));
+            }
+        } 
         
         
 
