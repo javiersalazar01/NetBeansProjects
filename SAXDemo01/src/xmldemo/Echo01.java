@@ -2,6 +2,7 @@ package xmldemo;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
@@ -67,8 +68,8 @@ public class Echo01 extends DefaultHandler {
     private boolean isTeamName = false;
     private boolean isTeam = false;
     private boolean isMyTeam = false;
-    private String teamToSearch = "Braves";
-    private String estadistica = "runs";
+    private String teamToSearch = "Yankees";
+    private String estadistica = "STRUCK_OUT_BATTER";
     private boolean factorFlag = false;
     private ArrayList<Integer> runList = new ArrayList<Integer>();
     
@@ -105,6 +106,25 @@ public class Echo01 extends DefaultHandler {
     }
     
     
+    public double average (Integer data[]){
+        double sum = 0;
+        for (int i = 0; i < data.length; i++) {
+            sum = sum + data[i];
+        }
+        return sum/data.length;
+    }
+    
+    public double desvicionEst(Integer data[],double prom){
+        double sum = 0;
+        double resta;
+        for (int i = 0; i < 10; i++) {
+            resta = data[i] - prom;
+            sum = sum +  Math.pow(resta, 2.0);
+            
+        }
+        return sum / data.length;
+    }
+    
     
     //metodo que se manda a invocar cuando el se detecta una etiquta de inico de xml, ejemplo: <item/>
     public void endElement(String namespaceURI,
@@ -114,28 +134,26 @@ public class Echo01 extends DefaultHandler {
             throws SAXException {
         
         if (qName.equalsIgnoreCase("TEAM")) {
+            
             isTeam= false;
+            
+            if (isMyTeam) {
+                Object [] arrRuns  = runList.toArray();
+            
+                double prom = 0,dE = 0;
+
+                Integer[] integerArray = Arrays.copyOf(arrRuns, arrRuns.length, Integer[].class);
+
+                prom = average(integerArray);
+
+                dE = desvicionEst(integerArray, prom);
+
+                emit("Promedio de " + estadistica + ": " + prom);
+                nl();
+                emit("Desviacion estandar de " + estadistica + ": " + Math.sqrt(dE));
+            }
+            
             isMyTeam = false;
-            
-            Object [] arrRuns  = runList.toArray();
-            
-            int sum =0,dif = 0,numAct = 0;
-            double prom = 0,dE;
-            
-            for (int i = 0; i < arrRuns.length; i++) {
-                numAct = (int) arrRuns[i];
-                sum = sum +  numAct;
-            }
-            
-            prom = sum / arrRuns.length;
-            
-            for (int i = 0; i < 10; i++) {
-                
-                
-            }
-            
-            
-            
         }
         
         if (qName.equalsIgnoreCase("TEAM_NAME")) {
@@ -145,10 +163,13 @@ public class Echo01 extends DefaultHandler {
         
         if (qName.equalsIgnoreCase("PLAYER")) {
             isPlayer = false;
-            nl();
+            if (isMyTeam) {
+                nl();
+            }
+            
         }
         
-        if (qName.equalsIgnoreCase("RUNS")) {
+        if (qName.equalsIgnoreCase(estadistica)) {
             factorFlag = false;
         }
         
