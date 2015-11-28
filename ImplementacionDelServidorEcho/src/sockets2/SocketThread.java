@@ -26,15 +26,13 @@ public class SocketThread extends Thread {
 
     public SocketThread(Socket clienteSocket) {
         this.clienteSocket = clienteSocket;
-        System.out.println("Iniciado conexion.");
+        System.out.println("Nueva conexion Establecida.");
         start();
     }
     
     
     @Override
     public void run() {
-       
-
        
        
         PrintWriter out = null;

@@ -17,6 +17,12 @@ import java.util.Scanner;
  */
 public class ClienteMasiso {
     
+    /*
+       Clase cliente, ejecútese para crear un cliente que se conecta al servidor por medio de localhost.
+       Es necesario primero ejecutar el servidor forzosamente.
+    */
+    
+    
      public static void main(String[] args) throws IOException {
 
         String serverHostname = "127.0.0.1";
@@ -41,7 +47,6 @@ public class ClienteMasiso {
 
 	Scanner sca = new Scanner(System.in);
 	String entrada = null;
-        String llegada = null;
         
          System.out.print("Entrada: ");
 	while ((entrada = sca.nextLine()) != null) {

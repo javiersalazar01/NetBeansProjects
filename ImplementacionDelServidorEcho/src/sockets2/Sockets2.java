@@ -19,47 +19,16 @@ import java.net.Socket;
 public class Sockets2 {
 
     /**
-     * @param args the command line arguments
+     * Clase Socket ejecutese primero para levantar el server, despues ejecute el cliente.
+     * 
      */
     public static void main(String[] args) throws IOException {
-       /* ServerSocket serverSocket = null;
-        Socket clientSocket = null; 
-
-        try { 
-             serverSocket = new ServerSocket(7777); 
-             System.out.println("Esperando Conexion");
-             clientSocket = serverSocket.accept(); 
-            } 
-        catch (IOException e) 
-            { 
-             System.err.println("Error"); 
-
-            } 
-        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(),true); 
-        BufferedReader in = new BufferedReader(new InputStreamReader( clientSocket.getInputStream())); 
-
-        String inputLine; 
-
-        while ((inputLine = in.readLine()) != null){ 
-            if (inputLine.equals(".")){
-                break;
-            }
-            System.out.println ("Entrada: " + inputLine); 
-            out.println(inputLine); 
-            System.out.println("Enviado: " + inputLine);
-
-            } 
-
-        out.close(); 
-        in.close(); 
-        clientSocket.close(); 
-        serverSocket.close(); */
-        //System.out.print("GET / HTTP/1.1\nHost: www.unison.edu.mx\n");
+       
         ServerSocket serverSocket = null;
         try { 
             serverSocket = new ServerSocket(7777); 
             for (int i = 0; i < 3; i++) {
-                System.out.println("Esperando Conexion...");
+                
                 SocketThread t = new SocketThread(serverSocket.accept());
                 System.out.println("Conectado.");
             }
