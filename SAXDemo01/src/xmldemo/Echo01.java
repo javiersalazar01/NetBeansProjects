@@ -13,10 +13,7 @@ import javax.xml.parsers.SAXParser;
 
 public class Echo01 extends DefaultHandler {
 
-
     public static void main(String argv[]) {
-      
-
 
         // Use an instance of ourselves as the SAX event handler
         DefaultHandler handler = new Echo01();
@@ -31,7 +28,6 @@ public class Echo01 extends DefaultHandler {
 
             saxParser.parse(new File("MLB.xml"), handler);
 
-
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -42,7 +38,6 @@ public class Echo01 extends DefaultHandler {
 
     //===========================================================
     // SAX DocumentHandler methods
-
     // Se Ejecuta al iniciar a leer el documento.    
     //===========================================================
     public void startDocument()
@@ -52,8 +47,7 @@ public class Echo01 extends DefaultHandler {
         nl();
     }
 
-    public void endDocument()
-            throws SAXException {
+    public void endDocument() throws SAXException {
 
         try {
             nl();
@@ -63,17 +57,15 @@ public class Echo01 extends DefaultHandler {
         }
     }
 
-    
     private boolean isPlayer = false;
     private boolean isTeamName = false;
     private boolean isTeam = false;
     private boolean isMyTeam = false;
-    private String teamToSearch = "Yankees";
-    private String estadistica = "STRUCK_OUT_BATTER";
+    private String teamToSearch = "Yankees"; //modifique variable para cambiar de equipo.
+    private String estadistica = "STRUCK_OUT_BATTER";//modifique para cambiar la estadistica a buscar.
     private boolean factorFlag = false;
-    private ArrayList<Integer> runList = new ArrayList<Integer>();
-    
-    
+    private ArrayList<Integer> estadisticaList = new ArrayList<Integer>();
+
     //metodo que se manda a invocar cuando el se detecta una etiquta de inico de xml, ejemplo: <item>
     public void startElement(String namespaceURI,
             String lName, // local name
@@ -85,119 +77,108 @@ public class Echo01 extends DefaultHandler {
         if ("".equals(eName)) {
             eName = qName; // namespaceAware = false
         }
-        
 
         if (eName.equalsIgnoreCase("TEAM")) {
-            isTeam= true;
+            isTeam = true;
         }
-        
+
         if (eName.equalsIgnoreCase("TEAM_NAME")) {
             isTeamName = true;
         }
-        
-        
+
         if (eName.equalsIgnoreCase("player")) {
             isPlayer = true;
         }
-        
+
         if (eName.equalsIgnoreCase(estadistica)) {
             factorFlag = true;
         }
     }
-    
-    
-    public double average (Integer data[]){
+
+    public double average(Integer data[]) {
         double sum = 0;
         for (int i = 0; i < data.length; i++) {
             sum = sum + data[i];
         }
-        return sum/data.length;
+        return sum / data.length;
     }
-    
-    public double desvicionEst(Integer data[],double prom){
+
+    public double varianza(Integer data[], double prom) {
         double sum = 0;
         double resta;
         for (int i = 0; i < 10; i++) {
             resta = data[i] - prom;
-            sum = sum +  Math.pow(resta, 2.0);
-            
+            sum = sum + Math.pow(resta, 2.0);
+
         }
         return sum / data.length;
     }
-    
-    
+
     //metodo que se manda a invocar cuando el se detecta una etiquta de inico de xml, ejemplo: <item/>
     public void endElement(String namespaceURI,
             String sName, // simple name
             String qName // qualified name
     )
             throws SAXException {
-        
+
         if (qName.equalsIgnoreCase("TEAM")) {
-            
-            isTeam= false;
-            
+
+            isTeam = false;
+
             if (isMyTeam) {
-                Object [] arrRuns  = runList.toArray();
-            
-                double prom = 0,dE = 0;
+                Object[] arrRuns = estadisticaList.toArray();
+
+                double prom = 0, varianza = 0;
 
                 Integer[] integerArray = Arrays.copyOf(arrRuns, arrRuns.length, Integer[].class);
 
                 prom = average(integerArray);
 
-                dE = desvicionEst(integerArray, prom);
+                varianza = varianza(integerArray, prom);
 
                 emit("Promedio de " + estadistica + ": " + prom);
                 nl();
-                emit("Desviacion estandar de " + estadistica + ": " + Math.sqrt(dE));
+                emit("Desviacion estandar de " + estadistica + ": " + Math.sqrt(varianza));
             }
-            
+
             isMyTeam = false;
         }
-        
+
         if (qName.equalsIgnoreCase("TEAM_NAME")) {
             isTeamName = false;
         }
-        
-        
+
         if (qName.equalsIgnoreCase("PLAYER")) {
             isPlayer = false;
             if (isMyTeam) {
                 nl();
             }
-            
         }
-        
+
         if (qName.equalsIgnoreCase(estadistica)) {
             factorFlag = false;
         }
-        
-        
-       
+
     }
 
     //metodo que se manda a invocar al detectar el contenido dentro de una etiquet xml.
     public void characters(char buf[], int offset, int len)
             throws SAXException {
         String s = new String(buf, offset, len);
-        
-        
+
         if (isTeamName && s.equalsIgnoreCase(teamToSearch)) {
             isMyTeam = true;
-            
+
             emit(s);
             nl();
         }
-        
-        if (isMyTeam && isPlayer ) {
+
+        if (isMyTeam && isPlayer) {
             emit(s + "\t");
             if (factorFlag) {
-                runList.add(Integer.parseInt(s));
+                estadisticaList.add(Integer.parseInt(s));
             }
-        } 
-        
-        
+        }
 
     }
 
@@ -206,7 +187,6 @@ public class Echo01 extends DefaultHandler {
     //===========================================================
     // Wrap I/O exceptions in SAX exceptions, to
     // suit handler signature requirements
-
     private void emit(String s)
             throws SAXException {
 
@@ -219,7 +199,6 @@ public class Echo01 extends DefaultHandler {
     }
 
     // Start a new line
-
     private void nl()
             throws SAXException {
 
