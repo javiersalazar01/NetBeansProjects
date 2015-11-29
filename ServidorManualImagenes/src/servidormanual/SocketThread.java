@@ -26,8 +26,10 @@ public class SocketThread extends Thread {
 
     private Socket clienteSocket;
     final static String CRLF = "\r\n";
-    private final String carpetaMadre = "C:/JAVIER/cositasjijiij/raiz/";
+    private final String carpetaMadre = "./raiz/";
     
+    
+    // variable utilizada que contiene la pagina de error 404.
     private final String error404 = "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
             + "<head>\n"
             + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\n"
@@ -57,6 +59,8 @@ public class SocketThread extends Thread {
             + "</body>\n"
             + "</html>";
 
+    
+    //variable utilizada que contiene la pagina de error 501.
     private final String error501 = "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
             + "<head>\n"
             + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\n"
@@ -85,7 +89,8 @@ public class SocketThread extends Thread {
             + "</div>\n"
             + "</body>\n"
             + "</html>";
-
+    
+    //variable utilizada que contiene la pagina de error Forbiden.
     private final String errorForbiden = "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
             + "<head>\n"
             + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\n"
@@ -157,31 +162,33 @@ public class SocketThread extends Thread {
             File f = new File(carpetaMadre + urlRelativo);
             FileInputStream fis = null;
             
+            
             if (!f.isDirectory() && f.exists()) {
                 fis = new FileInputStream(f);
             }
             
+           
             String statusLine = null;
             String contentTypeLine = null;
             
 
             if (method.equalsIgnoreCase("post")) {
 
-                pw.write(error501);
+                out.writeBytes(error501);
 
             } else if (f.isDirectory() && !urlRelativo.endsWith("/")) {
 
-                pw.write(errorForbiden);
+                out.writeBytes(errorForbiden);
 
             } else if (urlRelativo.endsWith("/")) {
 
                 //f = new File("C:/Users/CSI-PRO-PC/Desktop/cositas jijiji/raiz" + urlRelativo + "index.html");
                 f = new File(carpetaMadre + urlRelativo + "index.html");
                 if (f.exists()) {
-                    
+                    fis = new FileInputStream(f);
                     System.out.println("Direccion de archivo :" + f.toString());
                     statusLine = "HTTP/1.0 200 OK" + CRLF; //common success message
-                    contentTypeLine = "Content-type: " + contentType(urlRelativo) + CRLF;
+                    contentTypeLine = "Content-type: " + contentType(urlRelativo + "index.html") + CRLF;
                     out.writeBytes(statusLine);
                     out.writeBytes(contentTypeLine);
                     out.writeBytes(CRLF);
@@ -189,7 +196,7 @@ public class SocketThread extends Thread {
                     fis.close();
                     
                 } else {
-                    pw.write(error404);
+                    out.writeBytes(error404);
                 }
 
             } else if (f.exists()) {
@@ -203,7 +210,7 @@ public class SocketThread extends Thread {
                 fis.close();
 
             } else {
-                pw.write(error404);
+                out.writeBytes(error404);
             }
 
             out.close();
@@ -217,6 +224,8 @@ public class SocketThread extends Thread {
         }
     }
 
+    
+    //indica el type content par la pagina, deacuerdo al archivo solicitado.
     private static String contentType(String fileName) {
         if (fileName.endsWith(".htm") || fileName.endsWith(".html")) {
             return "text/html";
@@ -230,17 +239,18 @@ public class SocketThread extends Thread {
         return "application/octet-stream";
     }
 
-//set up input output streams
+        
     private static void fileToBytes(FileInputStream fis, OutputStream os) throws Exception {
-        // Construct a 1K buffer to hold bytes on their way to the socket.
+        
         byte[] buffer = new byte[1024];
         int bytes = 0;
 
-        // Copy requested file into the socket's output stream.
-        while ((bytes = fis.read(buffer)) != -1)// read() returns minus one, indicating that the end of the file
+        // copia el archivo en el outputstream
+        while ((bytes = fis.read(buffer)) != -1)// read() returna -1 indicando el final del archivo.
         {
             os.write(buffer, 0, bytes);
         }
     }
 
 }
+  

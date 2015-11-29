@@ -30,7 +30,7 @@ public class WebCrawler {
         String encoding = "iso-8859-1";
         try {
             // Crear URL y obtener conexion
-            url = new URL("https://www.youtube.com/");
+            url = new URL(args[0]);
             
         } catch (MalformedURLException ex) {
             Logger.getLogger(WebCrawler.class.getName()).log(Level.SEVERE, null, ex);

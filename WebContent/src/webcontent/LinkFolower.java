@@ -63,7 +63,7 @@ public class LinkFolower extends HTMLEditorKit.ParserCallback {
                         try {
                             URL u = new URL(root.toExternalForm()+"/"+attValue);
                             
-                            if( attValue.endsWith(".html") || attValue.endsWith(".htm") ) {
+                            if( attValue.endsWith(".jpg") || attValue.endsWith(".png") ) {
                                 if( !pila.contains( u ) )
                                     pila.push(u);
                                 for(int i = 0;i<=count;i++)

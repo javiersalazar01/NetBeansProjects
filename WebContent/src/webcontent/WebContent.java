@@ -10,7 +10,6 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.text.html.HTMLEditorKit;
@@ -30,14 +29,12 @@ public class WebContent {
         String encoding = "iso-8859-1";
         try {
             // Crear URL y obtener conexion
-            url = new URL("http://www.unison.edu.mx/");
+            url = new URL(args[0]);
             URLConnection uc = url.openConnection();
             //encoding = uc.getContentType();
             //System.out.println(uc);
         } catch (MalformedURLException ex) {
-            
             System.out.println("Error en el URL. " + ex.getMessage());
-            
         } catch (IOException ex) {
             System.out.println("Error de E/S. " + ex.getMessage());
         }
@@ -56,20 +53,13 @@ public class WebContent {
 
         // Obtener manejador de etiquetas
         //HTMLEditorKit.ParserCallback callback = new TextOnlyProcessor();
-        HTMLEditorKit.ParserCallback callback = new ImageProcessor(url);
+       // HTMLEditorKit.ParserCallback callback = new LinkProcessor(url);
+         HTMLEditorKit.ParserCallback callback = new ImageTagHandler(url);
         try {
             //procesar el documento
             parser.parse(reader, callback, true);
         } catch (IOException ex) {
             Logger.getLogger(WebContent.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        ImageProcessor ip = (ImageProcessor) callback;
-        
-        ArrayList<URL> ur = ip.getIt().getLista();
-        for (int i = 0; i < ur.size(); i++) {
-            System.out.println(ur.get(i).getFile());
-        }
-        
     }
 }
